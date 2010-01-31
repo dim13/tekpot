@@ -27,7 +27,7 @@ struct	point {
 } *point, *ppoint, max;
 
 struct	patch {
-	int	p[16];
+	int	p[4][4];
 } *patch, *ppatch;
 
 int	tekheight = 3072;
@@ -51,9 +51,11 @@ void
 tekenable(int flag)
 {
 	if (flag) {
-		sc(27); ss("[?38h");
+		sc(27);
+		ss("[?38h");
 	} else {
-		sc(27); sc(003);
+		sc(27);
+		sc(003);
 	}
 }
 
@@ -61,7 +63,8 @@ void
 tekclear()
 {
 	tekenable(1);
-	sc(27); sc(014);
+	sc(27);
+	sc(014);
 	tekenable(0);
 }
 
@@ -69,9 +72,10 @@ void
 tekpen(int flag)
 {
 	if (flag) {
-		sc(29); sc(007);
+		sc(29);
 	} else {
 		sc(29);
+		sc(007);
 	}
 }
 	
@@ -109,7 +113,7 @@ tekcoord(unsigned int x, unsigned int y)
 void
 loadpatch(char *filename, int *patches, int *verticles)
 {
-	int	ii, jj;
+	int	i;
 	float	x, y, z;
 	int	a, b, c, d;
 	FILE	*fd;
@@ -125,32 +129,27 @@ loadpatch(char *filename, int *patches, int *verticles)
 		err(1, "can't allocate memory");
 	ppatch = patch;
 
-	for (ii = 0; ii < *patches; ii++) {
-		jj = 0;
-		a = 0;
-		b = 0;
-		c = 0;
-		d = 0;
+	for (i = 0; i < *patches; i++) {
 		fscanf(fd, "%i, %i, %i, %i,", &a, &b, &c, &d);
-		ppatch->p[jj++] = --a;
-		ppatch->p[jj++] = --b;
-		ppatch->p[jj++] = --c;
-		ppatch->p[jj++] = --d;
+		ppatch->p[0][0] = --a;
+		ppatch->p[0][1] = --b;
+		ppatch->p[0][2] = --c;
+		ppatch->p[0][3] = --d;
 		fscanf(fd, "%i, %i, %i, %i,", &a, &b, &c, &d);
-		ppatch->p[jj++] = --a;
-		ppatch->p[jj++] = --b;
-		ppatch->p[jj++] = --c;
-		ppatch->p[jj++] = --d;
+		ppatch->p[1][0] = --a;
+		ppatch->p[1][1] = --b;
+		ppatch->p[1][2] = --c;
+		ppatch->p[1][3] = --d;
 		fscanf(fd, "%i, %i, %i, %i,", &a, &b, &c, &d);
-		ppatch->p[jj++] = --a;
-		ppatch->p[jj++] = --b;
-		ppatch->p[jj++] = --c;
-		ppatch->p[jj++] = --d;
+		ppatch->p[2][0] = --a;
+		ppatch->p[2][1] = --b;
+		ppatch->p[2][2] = --c;
+		ppatch->p[2][3] = --d;
 		fscanf(fd, "%i, %i, %i, %i\n", &a, &b, &c, &d);
-		ppatch->p[jj++] = --a;
-		ppatch->p[jj++] = --b;
-		ppatch->p[jj++] = --c;
-		ppatch->p[jj++] = --d;
+		ppatch->p[3][0] = --a;
+		ppatch->p[3][1] = --b;
+		ppatch->p[3][2] = --c;
+		ppatch->p[3][3] = --d;
 		++ppatch;
 	}
 
@@ -165,7 +164,7 @@ loadpatch(char *filename, int *patches, int *verticles)
 	max.y = 0;
 	max.z = 0;
 
-	for (ii = 0; ii < *verticles; ii++) {
+	for (i = 0; i < *verticles; i++) {
 		fscanf(fd, "%f, %f, %f\n", &x, &y, &z);
 		ppoint->x = x;
 		if (abs(x) > max.x)
@@ -228,6 +227,25 @@ vec(Point *a, Point *b, float lambda)
 	a->z += lambda*(b->z - a->z);
 }
 
+#if 0
+void
+bernstein(int steps)
+{
+	int uinc = 1.0/steps;
+	int u = uinc;
+
+	for (i = 1; i < steps; i++, u += uinc) {
+		u_sqr = u * u;			/* u^2 */
+		tmp = 1.0 - u;			/* (1-u) */
+		tmp_sqr = tmp * tmp;		/* (1-u)^2 */
+		b[0][i] = tmp * tmp_sqr;	/* (1-u)^3 */
+		b[1][i] = 3 * u * tmp_sqr;	/* 3u(1-u)^2 */
+		b[2][i] = 3 * u_sqr * tmp;	/* 3u^2(1-u) */
+		b[2][i] = u * u_sqr;		/* u^3 */
+	}
+}
+#endif
+
 void
 bezier(Patch *pp, int step, int steps)
 {
@@ -273,10 +291,10 @@ main(int argc, char **argv)
 	tekclear();
 	tekenable(1);
 	for (i = 0; i < patches; i++) {
-		tekpen(0);
+		tekpen(1);
 		for (j = 0; j < npoints; j++)
 			bezier(&patch[i], j, npoints);
-		tekpen(1);
+		tekpen(0);
 	}
 	tekenable(0);
 
