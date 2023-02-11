@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include <err.h>
 
 typedef	struct point Point;
 typedef	struct patch Patch;
@@ -167,14 +169,14 @@ loadpatch(char *filename, int *patches, int *verticles)
 	for (i = 0; i < *verticles; i++) {
 		fscanf(fd, "%f, %f, %f\n", &x, &y, &z);
 		ppoint->x = x;
-		if (abs(x) > max.x)
-			max.x = abs(x);
+		if (fabs(x) > max.x)
+			max.x = fabs(x);
 		ppoint->y = y;
-		if (abs(y) > max.y)
-			max.y = abs(y);
+		if (fabs(y) > max.y)
+			max.y = fabs(y);
 		ppoint->z = z;
-		if (abs(z) > max.z)
-			max.z = abs(z);
+		if (fabs(z) > max.z)
+			max.z = fabs(z);
 		++ppoint;
 	}
 
@@ -253,11 +255,13 @@ bezier(Patch *pp, int step, int steps)
 	int	i, j, k;
 	float	s = (float)step/(float)steps;
 
-	for (i = 0; i < 16; i++) {
-		k = pp->p[i];
-		p[i].x = point[k].x;
-		p[i].y = point[k].y;
-		p[i].z = point[k].z;
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
+			k = pp->p[i][j];
+			p[4*i+j].x = point[k].x;
+			p[4*i+j].y = point[k].y;
+			p[4*i+j].z = point[k].z;
+		}
 	}
 
 	for (i = 15; i > 0; i--)
