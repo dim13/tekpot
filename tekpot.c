@@ -37,50 +37,39 @@ int	tekwidth = 4096;
 int	npoints = 100;
 
 void
-sc(char c)
+tekenable()
 {
-	putchar(c);
+	putchar(033); // esc
+	printf("[?38h");
 }
 
 void
-ss(char *s)
+tekdisable()
 {
-	while (*s)
-		putchar(*s++);
-}
-
-void
-tekenable(int flag)
-{
-	if (flag) {
-		sc(27);
-		ss("[?38h");
-	} else {
-		sc(27);
-		sc(003);
-	}
+	putchar(033); // esc
+	putchar(003); // etx
 }
 
 void
 tekclear()
 {
-	tekenable(1);
-	sc(27);
-	sc(014);
-	tekenable(0);
+	putchar(033); // esc
+	putchar(014); // np
 }
 
 void
-tekpen(int flag)
+tekpenon()
 {
-	if (flag) {
-		sc(29);
-	} else {
-		sc(29);
-		sc(007);
-	}
+	putchar(035); // gs
 }
-	
+
+void
+tekpenoff()
+{
+	putchar(035); // gs
+	putchar(007); // bel
+}
+
 void
 tekcoord(unsigned int x, unsigned int y)
 {
@@ -98,14 +87,14 @@ tekcoord(unsigned int x, unsigned int y)
 	eb = (x & 3) | ((y & 3) << 2);
 
 	if (hiy != lhiy)
-		sc(hiy | 0x20);
+		putchar(hiy | 0x20);
 	if (eb != leb)
-		sc(eb | 0x60);
+		putchar(eb | 0x60);
 	if (eb != leb || loy != lloy || hix != lhix)
-		sc(loy | 0x60);
+		putchar(loy | 0x60);
 	if (hix != lhix)
-		sc(hix | 0x20);
-	sc(lox | 0x40);
+		putchar(hix | 0x20);
+	putchar(lox | 0x40);
 	lhiy = hiy;
 	lhix = hix;
 	lloy = loy;
@@ -292,15 +281,15 @@ main(int argc, char **argv)
 
 	loadpatch(*++argv, &patches, &verticles);
 
+	tekenable();
 	tekclear();
-	tekenable(1);
 	for (i = 0; i < patches; i++) {
-		tekpen(1);
+		tekpenon();
 		for (j = 0; j < npoints; j++)
 			bezier(&patch[i], j, npoints);
-		tekpen(0);
+		tekpenoff();
 	}
-	tekenable(0);
+	tekdisable();
 
 	return 0;
 }
