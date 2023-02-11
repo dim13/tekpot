@@ -1,7 +1,3 @@
-# $Id$
+LDADD=-lm
 
-PROG=	tekpot
-NOMAN=
-LDADD=	-lm
-
-.include <bsd.prog.mk>
+tekpot: tekpot.c
